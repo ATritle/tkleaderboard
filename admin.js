@@ -7,7 +7,7 @@ const API_BASE=`https://api.github.com/repos/${OWNER}/${REPO}`;
 
 const $=id=>document.getElementById(id);
 const norm=s=>String(s??'').trim().replace(/\s+/g,' ').toLowerCase();
-const titleCase=s=>String(s??'').trim().replace(/\s+/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+const cleanName=s=>String(s??'').trim().replace(/\s+/g,' ');
 let incidents=[],players=[];
 
 function setStatus(id,message,type='show'){const el=$(id);el.textContent=message;el.className=`status show ${type}`}
@@ -22,7 +22,7 @@ async function loadData(){
   try{
     const [a,b]=await Promise.all([readFile(INCIDENT_FILE),readFile(PLAYER_FILE)]);
     incidents=Array.isArray(a.data)?a.data:[];players=Array.isArray(b.data)?b.data:[];
-    players=[...new Set(players.map(titleCase).filter(Boolean))].sort((x,y)=>x.localeCompare(y));
+    players=[...new Map(players.map(p=>[norm(p),cleanName(p)])).values()].sort((x,y)=>x.localeCompare(y));
     populateSelects();renderPlayers();renderRecent();
   }catch(e){setStatus('playerStatus',e.message,'error')}
 }
@@ -48,67 +48,50 @@ async function savePlayers(newPlayers,message){
   players=[...newPlayers].sort((a,b)=>a.localeCompare(b));populateSelects();renderPlayers();return true;
 }
 async function addPlayer(){
-  clearStatus('playerStatus');const name=titleCase($('newPlayer').value);
+  clearStatus('playerStatus');
+  const name=cleanName($('newPlayer').value);
   if(!name){setStatus('playerStatus','Enter a player name.','error');return}
-  if(players.some(p=>norm(p)===norm(name))){setStatus('playerStatus',`${name} is already on the roster.`,'error');return}
+  if(players.some(p=>norm(p)===norm(name))){setStatus('playerStatus',`${players.find(p=>norm(p)===norm(name))} is already on the roster.`,'error');return}
   const b=$('addPlayer');b.disabled=true;setStatus('playerStatus',`Adding ${name} to GitHub...`,'working');
-  try{const list=[...players,name].sort((a,b)=>a.localeCompare(b));if(await savePlayers(list,`Add player: ${name}`)){$('newPlayer').value='';setStatus('playerStatus',`${name} added successfully. The player is now available in both dropdowns.`,'success')}}catch(e){setStatus('playerStatus',e.message,'error')}finally{b.disabled=false}
+  try{
+    const list=[...players,name].sort((a,b)=>a.localeCompare(b));
+    if(await savePlayers(list,`Add player: ${name}`)){
+      $('newPlayer').value='';
+      setStatus('playerStatus',`${name} added successfully. The capitalization you entered will be preserved.`,'success')
+    }
+  }catch(e){setStatus('playerStatus',e.message,'error')}finally{b.disabled=false}
 }
 async function removePlayer(name){
   if(!confirm(`Remove "${name}" from the player roster?\n\nExisting team-kill history will not be deleted.`))return;
-  try{setStatus('playerStatus',`Removing ${name} from GitHub...`,'working');const list=players.filter(p=>norm(p)!==norm(name));if(await savePlayers(list,`Remove player: ${name}`))setStatus('playerStatus',`${name} removed from the roster. Existing incidents were not changed.`,'success')}catch(e){setStatus('playerStatus',e.message,'error')}
+  try{
+    setStatus('playerStatus',`Removing ${name} from GitHub...`,'working');
+    const list=players.filter(p=>norm(p)!==norm(name));
+    if(await savePlayers(list,`Remove player: ${name}`))setStatus('playerStatus',`${name} removed from the roster. Existing incidents were not changed.`,'success')
+  }catch(e){setStatus('playerStatus',e.message,'error')}
 }
 function nextId(data){const max=data.reduce((n,i)=>Math.max(n,Number(String(i.id||'').replace(/^TK-/i,''))||0),0);return`TK-${String(max+1).padStart(4,'0')}`}
 function renderRecent(){
   const recent=[...incidents].sort((a,b)=>String(b.date).localeCompare(String(a.date))||String(b.id).localeCompare(String(a.id))).slice(0,10);
   $('adminRecent').innerHTML=`<div class="table-head"><span>TK ID</span><span>KILLER</span><span>VICTIM</span><span>DATE</span><span>MAP</span><span>NOTES</span><span>CLIP</span><span>ACTION</span></div>`+
-    recent.map(i=>`<div class="incident-row"><span class="tkid">${esc(i.id)}</span><span class="killer">${esc(titleCase(i.killer))}</span><span class="victim">${esc(titleCase(i.victim))}</span><span class="date">${formatDate(i.date)}</span><span class="map">${esc(i.map)}</span><span class="notes" title="${esc(i.notes||'')}">${esc(i.notes||'No notes recorded.')}</span><span>${i.clip?`<a class="clip-icon" href="${esc(i.clip)}" target="_blank" rel="noopener">↗</a>`:''}</span><span><button class="delete-tk" type="button" data-id="${esc(i.id)}">DELETE</button></span></div>`).join('');
+    recent.map(i=>`<div class="incident-row"><span class="tkid">${esc(i.id)}</span><span class="killer">${esc(i.killer||'')}</span><span class="victim">${esc(i.victim||'')}</span><span class="date">${formatDate(i.date)}</span><span class="map">${esc(i.map)}</span><span class="notes" title="${esc(i.notes||'')}">${esc(i.notes||'No notes recorded.')}</span><span>${i.clip?`<a class="clip-icon" href="${esc(i.clip)}" target="_blank" rel="noopener">↗</a>`:''}</span><span><button class="delete-tk" type="button" data-id="${esc(i.id)}">DELETE</button></span></div>`).join('');
   document.querySelectorAll('.delete-tk').forEach(b=>b.addEventListener('click',()=>deleteKill(b.dataset.id)));
 }
-
 async function deleteKill(id){
-  const incident=incidents.find(i=>String(i.id)===String(id));
-  if(!incident)return;
-  const description=`${incident.id}: ${incident.killer} → ${incident.victim}`;
-  if(!confirm(`DELETE ${description}?\n\nThis will permanently remove the TK from the GitHub data file and the public leaderboard.\n\nThis cannot be undone.`))return;
+  const incident=incidents.find(i=>String(i.id)===String(id));if(!incident)return;
+  if(!confirm(`DELETE ${incident.id}: ${incident.killer} → ${incident.victim}?\n\nThis will permanently remove the TK from the GitHub data file and the public leaderboard.\n\nThis cannot be undone.`))return;
   if(!token()){setStatus('status','Enter your GitHub Personal Access Token before deleting an incident.','error');$('token').focus();return}
-
-  const buttons=document.querySelectorAll(`.delete-tk[data-id="${CSS.escape(id)}"]`);
-  buttons.forEach(b=>b.disabled=true);
+  document.querySelectorAll(`.delete-tk[data-id="${CSS.escape(id)}"]`).forEach(b=>b.disabled=true);
   setStatus('status',`Deleting ${id} from GitHub...`,'working');
-
   try{
-    // Re-read immediately before writing so we delete the current version
-    // rather than accidentally overwriting a newer incident.
-    const current=await readFile(INCIDENT_FILE);
-    const data=Array.isArray(current.data)?current.data:[];
+    const current=await readFile(INCIDENT_FILE),data=Array.isArray(current.data)?current.data:[];
     const updated=data.filter(i=>String(i.id)!==String(id));
-
     if(updated.length===data.length)throw new Error(`${id} was not found in the current GitHub data.`);
-    const put=await fetch(`${API_BASE}/contents/${INCIDENT_FILE}`,{
-      method:'PUT',
-      headers:{...headers(true),'Content-Type':'application/json'},
-      body:JSON.stringify({
-        message:`Delete ${id}: ${incident.killer} → ${incident.victim}`,
-        content:encode(updated),
-        sha:current.sha,
-        branch:BRANCH
-      })
-    });
-    const result=await put.json();
-    if(!put.ok)throw new Error(result.message||`GitHub delete failed (HTTP ${put.status}).`);
-
-    incidents=updated;
-    renderRecent();
-    renderPlayers();
+    const put=await fetch(`${API_BASE}/contents/${INCIDENT_FILE}`,{method:'PUT',headers:{...headers(true),'Content-Type':'application/json'},body:JSON.stringify({message:`Delete ${id}: ${incident.killer} → ${incident.victim}`,content:encode(updated),sha:current.sha,branch:BRANCH})});
+    const result=await put.json();if(!put.ok)throw new Error(result.message||`GitHub delete failed (HTTP ${put.status}).`);
+    incidents=updated;renderRecent();renderPlayers();
     setStatus('status',`${id} was deleted successfully. GitHub and the public leaderboard have been updated.`,'success');
-  }catch(e){
-    setStatus('status',e.message,'error');
-  }finally{
-    document.querySelectorAll('.delete-tk').forEach(b=>b.disabled=false);
-  }
+  }catch(e){setStatus('status',e.message,'error')}finally{document.querySelectorAll('.delete-tk').forEach(b=>b.disabled=false)}
 }
-
 function validate(){const k=$('killer').value,v=$('victim').value,d=$('date').value,m=$('map').value,c=$('clip').value.trim();if(!k||!v)return'Select both players.';if(norm(k)===norm(v))return'The killer and victim cannot be the same player.';if(!d)return'Select a date.';if(!m)return'Select a map.';if(c){try{new URL(c)}catch{return'The video clip URL is not valid.'}}return''}
 async function addKill(){
   clearStatus('status');const error=validate();if(error){setStatus('status',error,'error');return}
@@ -125,7 +108,6 @@ async function addKill(){
 function clearForm(){$('killer').value='';$('victim').value='';$('date').value=new Date().toISOString().slice(0,10);$('map').value='';$('notes').value='';$('clip').value=''}
 function formatDate(v){if(!v)return'Unknown';const d=new Date(`${v}T12:00:00`);return Number.isNaN(d.getTime())?esc(v):d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
-
 $('date').value=new Date().toISOString().slice(0,10);
 $('addPlayer').addEventListener('click',addPlayer);
 $('newPlayer').addEventListener('keydown',e=>{if(e.key==='Enter')addPlayer()});
