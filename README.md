@@ -1,4 +1,4 @@
-# Tarkov Team Kill Leaderboard
+# Tarkov Team Kill Leaderboard 1.0
 
 Static GitHub Pages site for tracking Escape From Tarkov team-kill incidents.
 
