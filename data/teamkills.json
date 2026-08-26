@@ -7,5 +7,14 @@
     "map": "Customs",
     "notes": "Example record — replace or remove this entry.",
     "clip": ""
+  },
+  {
+    "id": "TK-0002",
+    "killer": "ExamplePlayer",
+    "victim": "ExampleVictim",
+    "date": "2026-08-26",
+    "map": "Shoreline",
+    "notes": "Mistaken identity at Smugglers",
+    "clip": ""
   }
 ]
