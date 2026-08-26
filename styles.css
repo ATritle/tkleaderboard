@@ -30,3 +30,5 @@ input,select{background:#0b0f10;color:var(--text);border:1px solid #30383a;borde
 .hidden{display:none!important}
 @media(max-width:950px){.stats-grid{grid-template-columns:repeat(3,1fr)}.leaderboard{grid-template-columns:1fr 1fr}}
 @media(max-width:700px){.topbar{align-items:flex-start;flex-direction:column}.eft-logo-wrap{width:100%;justify-content:flex-start}.eft-logo{width:190px;max-height:64px}.stats-grid{grid-template-columns:1fr 1fr}.leaderboard{grid-template-columns:1fr}.toolbar{flex-direction:column;align-items:stretch}.filters>*{flex:1;width:auto!important}.incident{grid-template-columns:1fr}.incident-actions{justify-content:flex-start}.footer{flex-direction:column}}
+
+.brand-center img{display:block;width:min(360px,34vw);max-height:82px;object-fit:contain}
