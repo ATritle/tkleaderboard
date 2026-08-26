@@ -1,4 +1,4 @@
-const state={incidents:[], filtered:[]};
+const state={incidents:[],filtered:[]};
 const $=id=>document.getElementById(id);
 const norm=s=>String(s??"").trim().replace(/\s+/g," ").toLowerCase();
 const titleCase=s=>String(s??"").trim().replace(/\s+/g," ").replace(/\b\w/g,c=>c.toUpperCase());
@@ -6,16 +6,12 @@ const titleCase=s=>String(s??"").trim().replace(/\s+/g," ").replace(/\b\w/g,c=>c
 async function loadData(){
   try{
     const res=await fetch(`data/teamkills.json?v=${Date.now()}`);
-    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    if(!res.ok)throw new Error(`HTTP ${res.status}`);
     const data=await res.json();
     state.incidents=Array.isArray(data)?data:[];
-  }catch(err){
-    console.error(err);
-    state.incidents=[];
-  }
+  }catch(err){console.error(err);state.incidents=[]}
   state.filtered=[...state.incidents];
-  populateFilters();
-  render();
+  populateFilters();render();
 }
 function populateFilters(){
   const maps=[...new Set(state.incidents.map(i=>i.map).filter(Boolean))].sort();
@@ -27,67 +23,53 @@ function applyFilters(){
   const q=norm($("searchInput").value),map=$("mapFilter").value,player=norm($("playerFilter").value);
   state.filtered=state.incidents.filter(i=>{
     const text=[i.id,i.killer,i.victim,i.date,i.map,i.notes].join(" ").toLowerCase();
-    const playerMatch=!player||norm(i.killer)===player||norm(i.victim)===player;
-    return (!q||text.includes(q))&&(!map||i.map===map)&&playerMatch;
+    return (!q||text.includes(q))&&(!map||i.map===map)&&(!player||norm(i.killer)===player||norm(i.victim)===player);
   }).sort((a,b)=>String(b.date).localeCompare(String(a.date))||String(b.id).localeCompare(String(a.id)));
   render();
 }
+function countBy(items,fn){return items.reduce((a,x)=>{const k=fn(x);if(k)a[k]=(a[k]||0)+1;return a},{});}
+function winner(counts){const row=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];return row?`${titleCase(row[0])}`:"—";}
 function render(){
-  const incidents=state.incidents;
-  $("totalKills").textContent=incidents.length;
-  $("recordCount").textContent=`${incidents.length} ${incidents.length===1?"incident":"incidents"}`;
-  const players=[...new Set(incidents.flatMap(i=>[norm(i.killer),norm(i.victim)]).filter(Boolean))];
-  const maps=[...new Set(incidents.map(i=>i.map).filter(Boolean))];
+  const all=state.incidents;
+  $("totalKills").textContent=all.length;
+  $("recordCount").textContent=`${all.length} ${all.length===1?"INCIDENT":"INCIDENTS"}`;
+  const players=[...new Set(all.flatMap(i=>[norm(i.killer),norm(i.victim)]).filter(Boolean))];
+  const maps=[...new Set(all.map(i=>i.map).filter(Boolean))];
   $("playerCount").textContent=players.length;
   $("mapCount").textContent=maps.length;
+  $("topKiller").textContent=winner(countBy(all,i=>norm(i.killer)));
+  $("topVictim").textContent=winner(countBy(all,i=>norm(i.victim)));
 
-  const killerCounts=countBy(incidents,i=>norm(i.killer));
-  const victimCounts=countBy(incidents,i=>norm(i.victim));
-  $("topKiller").textContent=displayWinner(killerCounts);
-  $("topVictim").textContent=displayWinner(victimCounts);
+  const kc=countBy(all,i=>norm(i.killer));
+  const vc=countBy(all,i=>norm(i.victim));
+  const names=[...new Set([...Object.keys(kc),...Object.keys(vc)])].sort((a,b)=>(kc[b]||0)-(kc[a]||0)||a.localeCompare(b));
+  $("leaderboard").innerHTML=names.length?`
+    <div class="rank-card" style="border-top:0;color:#8f999c;font-size:11px;text-transform:uppercase">
+      <div>#</div><div>PLAYER</div><div class="rank-count">TEAM KILLS</div><div class="rank-count">VICTIMS</div><div class="rank-count">VICTIMIZED</div><div class="rank-count">TK RATIO</div>
+    </div>
+    ${names.map((name,idx)=>{
+      const kills=kc[name]||0,victims=new Set(all.filter(i=>norm(i.killer)===name).map(i=>norm(i.victim))).size,received=vc[name]||0,total=kills+received,ratio=total?Math.round(kills/total*100):0;
+      return `<div class="rank-card"><div class="rank">${idx+1}</div><div class="rank-name">${esc(titleCase(name))}</div><div class="rank-count"><strong>${kills}</strong></div><div class="rank-count"><strong>${victims}</strong></div><div class="rank-count"><strong>${received}</strong></div><div class="rank-count"><strong>${ratio}%</strong></div></div>`;
+    }).join("")}`:"<div class='empty'><p>No incidents recorded yet.</p></div>";
 
-  const board=Object.entries(killerCounts).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).slice(0,10);
-  $("leaderboard").innerHTML=board.length?board.map(([name,count],idx)=>`
-    <div class="rank-card">
-      <div class="rank">#${idx+1}</div>
-      <div class="rank-name">${esc(titleCase(name))}</div>
-      <div class="rank-count"><strong>${count}</strong><span>TKs</span></div>
-    </div>`).join(""):`<div class="empty"><p>No incidents recorded yet.</p></div>`;
-
-  $("incidents").innerHTML=state.filtered.map(renderIncident).join("");
+  $("incidents").innerHTML=state.filtered.map(i=>{
+    const clip=i.clip?`<a class="clip-icon" href="${esc(i.clip)}" target="_blank" rel="noopener" title="View clip">↗</a>`:"";
+    return `<div class="incident-row">
+      <span class="tkid">${esc(i.id||"")}</span>
+      <span class="killer">${esc(titleCase(i.killer))}</span>
+      <span class="victim">${esc(titleCase(i.victim))}</span>
+      <span class="date">${formatDate(i.date)}</span>
+      <span class="map">${esc(i.map||"Unknown")}</span>
+      <span class="notes" title="${esc(i.notes||"")}">${esc(i.notes||"No notes recorded.")}</span>
+      <span>${clip}</span>
+    </div>`;
+  }).join("");
   $("empty").classList.toggle("hidden",state.filtered.length!==0);
 }
-function countBy(items,fn){
-  return items.reduce((acc,item)=>{const k=fn(item);if(k)acc[k]=(acc[k]||0)+1;return acc;},{});
-}
-function displayWinner(counts){
-  const row=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
-  return row?`${titleCase(row[0])} (${row[1]})`:"—";
-}
-function renderIncident(i){
-  const clip=i.clip?`<a class="clip" href="${esc(i.clip)}" target="_blank" rel="noopener">▶ View Video Clip ↗</a>`:"";
-  return `<article class="incident">
-    <div>
-      <div class="incident-head"><span class="map">${esc(i.map||"Unknown Map")}</span><span>${formatDate(i.date)}</span><span class="tkid">${esc(i.id||"")}</span></div>
-      <div class="kill-line"><strong class="killer">${esc(titleCase(i.killer))}</strong><span class="arrow">→</span><strong class="victim">${esc(titleCase(i.victim))}</strong></div>
-      <div class="notes">${esc(i.notes||"No notes recorded.")}</div>
-      ${clip}
-    </div>
-    <div class="incident-actions"></div>
-  </article>`;
-}
-function formatDate(value){
-  if(!value)return "Unknown date";
-  const d=new Date(`${value}T12:00:00`);
-  return Number.isNaN(d.getTime())?esc(value):d.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"});
-}
+function formatDate(v){if(!v)return"Unknown";const d=new Date(`${v}T12:00:00`);return Number.isNaN(d.getTime())?esc(v):d.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"});}
 function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
-
 $("searchInput").addEventListener("input",applyFilters);
 $("mapFilter").addEventListener("change",applyFilters);
 $("playerFilter").addEventListener("change",applyFilters);
-$("resetFilters").addEventListener("click",()=>{
-  $("searchInput").value="";$("mapFilter").value="";$("playerFilter").value="";
-  applyFilters();
-});
+$("resetFilters").addEventListener("click",()=>{$("searchInput").value="";$("mapFilter").value="";$("playerFilter").value="";applyFilters()});
 loadData();

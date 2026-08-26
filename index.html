@@ -3,60 +3,91 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0b0d0e">
+  <meta name="theme-color" content="#090b0c">
   <title>Tarkov Team Kill Leaderboard</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<header class="topbar">
-  <div class="brand">
+<header class="hero-header">
+  <div class="header-left">
     <div class="eyebrow">ESCAPE FROM TARKOV</div>
     <h1>TEAM KILL LEADERBOARD</h1>
     <p>Keeping track of who can't tell friend from foe.</p>
   </div>
-  <div class="eft-logo-wrap">
-    <img class="eft-logo" src="assets/eft-logo.png" alt="Escape from Tarkov">
+
+  <div class="header-logo">
+    <img src="assets/eft-logo.png" alt="Escape from Tarkov">
   </div>
-  <div class="topbar-meta"><span id="recordCount">0 incidents</span></div>
+
+  <div class="header-count">
+    <strong id="recordCount">0</strong>
+  </div>
 </header>
+
+<nav class="main-nav">
+  <div class="nav-inner">
+    <button class="nav-item active" type="button"><span class="nav-icon">◉</span> DASHBOARD</button>
+    <button class="nav-item" type="button"><span class="nav-icon">♜</span> LEADERBOARD</button>
+    <button class="nav-item" type="button"><span class="nav-icon">☷</span> INCIDENTS</button>
+  </div>
+</nav>
 
 <main class="container">
   <section class="stats-grid">
-    <article class="stat-card"><span>Total TKs</span><strong id="totalKills">0</strong></article>
-    <article class="stat-card"><span>Players</span><strong id="playerCount">0</strong></article>
-    <article class="stat-card"><span>Maps</span><strong id="mapCount">0</strong></article>
-    <article class="stat-card"><span>Top Killer</span><strong id="topKiller">—</strong></article>
-    <article class="stat-card"><span>Most Victimized</span><strong id="topVictim">—</strong></article>
+    <article class="stat-card">
+      <div class="stat-icon">☠</div>
+      <div><span>Total Team Kills</span><strong id="totalKills">0</strong><small>All time</small></div>
+    </article>
+    <article class="stat-card">
+      <div class="stat-icon">♟</div>
+      <div><span>Total Players</span><strong id="playerCount">0</strong><small>Involved</small></div>
+    </article>
+    <article class="stat-card">
+      <div class="stat-icon">▱</div>
+      <div><span>Total Maps</span><strong id="mapCount">0</strong><small>Maps played</small></div>
+    </article>
+    <article class="stat-card">
+      <div class="stat-icon">⌖</div>
+      <div><span>Top TK Player</span><strong id="topKiller">—</strong><small>Most team kills</small></div>
+    </article>
+    <article class="stat-card">
+      <div class="stat-icon">♟</div>
+      <div><span>Most Victimized</span><strong id="topVictim">—</strong><small>Most TKs received</small></div>
+    </article>
   </section>
 
-  <section class="panel">
-    <div class="section-heading">
-      <div><div class="eyebrow">LEADERBOARD</div><h2>Who is the biggest threat to the squad?</h2></div>
-    </div>
+  <section class="panel leaderboard-panel">
+    <div class="section-title"><span class="section-icon">♜</span><div><div class="eyebrow">RANKINGS</div><h2>TEAM KILL LEADERBOARD</h2></div></div>
     <div id="leaderboard" class="leaderboard"></div>
   </section>
 
-  <section class="toolbar">
-    <div><div class="eyebrow">INCIDENT LOG</div><h2>Team Kill History</h2></div>
+  <section class="panel incidents-panel">
+    <div class="section-title"><span class="section-icon">☷</span><div><div class="eyebrow">HISTORY</div><h2>RECENT TEAM KILLS</h2></div></div>
     <div class="filters">
-      <input id="searchInput" type="search" placeholder="Search players, map, notes..." aria-label="Search incidents">
-      <select id="mapFilter" aria-label="Filter by map"><option value="">All Maps</option></select>
+      <input id="searchInput" type="search" placeholder="Search..." aria-label="Search incidents">
       <select id="playerFilter" aria-label="Filter by player"><option value="">All Players</option></select>
-      <button id="resetFilters" class="btn ghost" type="button">Reset</button>
+      <select id="mapFilter" aria-label="Filter by map"><option value="">All Maps</option></select>
+      <button id="resetFilters" class="btn ghost" type="button">↻ &nbsp; RESET</button>
     </div>
-  </section>
 
-  <section id="incidents" class="incident-list"></section>
-  <section id="empty" class="empty hidden">
-    <div class="empty-symbol">☠</div>
-    <h3>No team kills found</h3>
-    <p>Try clearing the filters or add incidents to <code>data/teamkills.json</code>.</p>
+    <div class="incident-table">
+      <div class="table-head">
+        <span>TK ID</span><span>KILLER</span><span>VICTIM</span><span>DATE</span><span>MAP</span><span>NOTES</span><span>CLIP</span>
+      </div>
+      <div id="incidents"></div>
+    </div>
+
+    <section id="empty" class="empty hidden">
+      <div class="empty-symbol">☠</div>
+      <h3>No team kills found</h3>
+      <p>Try clearing the filters or add incidents to <code>data/teamkills.json</code>.</p>
+    </section>
   </section>
 
   <footer class="footer">
-    <span>TK Leaderboard • Static GitHub Pages build</span>
-    <a class="repo-link" href="https://github.com/ATritle/tkleaderboard" target="_blank" rel="noopener" aria-label="Open GitHub repository">
-      <img src="assets/repository-logo.png" alt="GitHub repository">
+    <span>TK LEADERBOARD • STATIC GITHUB PAGES BUILD</span>
+    <a href="https://github.com/ATritle/tkleaderboard" target="_blank" rel="noopener" class="repo-link">
+      <img src="assets/repository-logo.png" alt="GitHub Repository">
     </a>
   </footer>
 </main>
