@@ -14,81 +14,60 @@
     <h1>TEAM KILL LEADERBOARD</h1>
     <p>Keeping track of who can't tell friend from foe.</p>
   </div>
-
-  <div class="header-logo">
-    <img src="assets/eft-logo.png" alt="Escape from Tarkov">
-  </div>
-
-  <div class="header-count">
-    <strong id="recordCount">0</strong>
-  </div>
+  <div class="header-logo"><img src="assets/eft-logo.png" alt="Escape from Tarkov"></div>
+  <div class="header-count"><strong id="recordCount">0 INCIDENTS</strong></div>
 </header>
 
-<nav class="main-nav">
+<nav class="main-nav" aria-label="Main navigation">
   <div class="nav-inner">
-    <button class="nav-item active" type="button"><span class="nav-icon">◉</span> DASHBOARD</button>
-    <button class="nav-item" type="button"><span class="nav-icon">♜</span> LEADERBOARD</button>
-    <button class="nav-item" type="button"><span class="nav-icon">☷</span> INCIDENTS</button>
+    <button class="nav-item active" data-view="dashboard" type="button"><span class="nav-icon">◉</span> DASHBOARD</button>
+    <button class="nav-item" data-view="leaderboard" type="button"><span class="nav-icon">♜</span> LEADERBOARD</button>
+    <button class="nav-item" data-view="incidents" type="button"><span class="nav-icon">☷</span> INCIDENTS</button>
   </div>
 </nav>
 
 <main class="container">
-  <section class="stats-grid">
-    <article class="stat-card">
-      <div class="stat-icon">☠</div>
-      <div><span>Total Team Kills</span><strong id="totalKills">0</strong><small>All time</small></div>
-    </article>
-    <article class="stat-card">
-      <div class="stat-icon">♟</div>
-      <div><span>Total Players</span><strong id="playerCount">0</strong><small>Involved</small></div>
-    </article>
-    <article class="stat-card">
-      <div class="stat-icon">▱</div>
-      <div><span>Total Maps</span><strong id="mapCount">0</strong><small>Maps played</small></div>
-    </article>
-    <article class="stat-card">
-      <div class="stat-icon">⌖</div>
-      <div><span>Top TK Player</span><strong id="topKiller">—</strong><small>Most team kills</small></div>
-    </article>
-    <article class="stat-card">
-      <div class="stat-icon">♟</div>
-      <div><span>Most Victimized</span><strong id="topVictim">—</strong><small>Most TKs received</small></div>
-    </article>
+  <section id="view-dashboard" class="view active-view">
+    <section class="stats-grid">
+      <article class="stat-card"><div class="stat-icon">☠</div><div><span>Total Team Kills</span><strong id="totalKills">0</strong><small>All time</small></div></article>
+      <article class="stat-card"><div class="stat-icon">♟</div><div><span>Total Players</span><strong id="playerCount">0</strong><small>Involved</small></div></article>
+      <article class="stat-card"><div class="stat-icon">▱</div><div><span>Total Maps</span><strong id="mapCount">0</strong><small>Maps played</small></div></article>
+      <article class="stat-card"><div class="stat-icon">⌖</div><div><span>Top TK Player</span><strong id="topKiller">—</strong><small>Most team kills</small></div></article>
+      <article class="stat-card"><div class="stat-icon">♟</div><div><span>Most Victimized</span><strong id="topVictim">—</strong><small>Most TKs received</small></div></article>
+    </section>
+
+    <section class="panel">
+      <div class="section-title"><span class="section-icon">☷</span><div><div class="eyebrow">LATEST</div><h2>RECENT TEAM KILLS</h2></div></div>
+      <div id="dashboardRecent" class="incident-table"></div>
+      <button class="panel-link" data-view="incidents" type="button">VIEW ALL INCIDENTS →</button>
+    </section>
   </section>
 
-  <section class="panel leaderboard-panel">
-    <div class="section-title"><span class="section-icon">♜</span><div><div class="eyebrow">RANKINGS</div><h2>TEAM KILL LEADERBOARD</h2></div></div>
-    <div id="leaderboard" class="leaderboard"></div>
+  <section id="view-leaderboard" class="view">
+    <section class="panel leaderboard-panel">
+      <div class="section-title"><span class="section-icon">♜</span><div><div class="eyebrow">RANKINGS</div><h2>TEAM KILL LEADERBOARD</h2></div></div>
+      <div id="leaderboard" class="leaderboard"></div>
+    </section>
   </section>
 
-  <section class="panel incidents-panel">
-    <div class="section-title"><span class="section-icon">☷</span><div><div class="eyebrow">HISTORY</div><h2>RECENT TEAM KILLS</h2></div></div>
-    <div class="filters">
-      <input id="searchInput" type="search" placeholder="Search..." aria-label="Search incidents">
-      <select id="playerFilter" aria-label="Filter by player"><option value="">All Players</option></select>
-      <select id="mapFilter" aria-label="Filter by map"><option value="">All Maps</option></select>
-      <button id="resetFilters" class="btn ghost" type="button">↻ &nbsp; RESET</button>
-    </div>
-
-    <div class="incident-table">
-      <div class="table-head">
-        <span>TK ID</span><span>KILLER</span><span>VICTIM</span><span>DATE</span><span>MAP</span><span>NOTES</span><span>CLIP</span>
+  <section id="view-incidents" class="view">
+    <section class="panel incidents-panel">
+      <div class="section-title"><span class="section-icon">☷</span><div><div class="eyebrow">HISTORY</div><h2>TEAM KILL INCIDENTS</h2></div></div>
+      <div class="filters">
+        <input id="searchInput" type="search" placeholder="Search..." aria-label="Search incidents">
+        <select id="playerFilter" aria-label="Filter by player"><option value="">All Players</option></select>
+        <select id="mapFilter" aria-label="Filter by map"><option value="">All Maps</option></select>
+        <button id="resetFilters" class="btn ghost" type="button">↻ &nbsp; RESET</button>
       </div>
-      <div id="incidents"></div>
-    </div>
-
-    <section id="empty" class="empty hidden">
-      <div class="empty-symbol">☠</div>
-      <h3>No team kills found</h3>
-      <p>Try clearing the filters or add incidents to <code>data/teamkills.json</code>.</p>
+      <div id="incidentTable" class="incident-table"></div>
+      <section id="empty" class="empty hidden"><div class="empty-symbol">☠</div><h3>No team kills found</h3><p>Try clearing the filters.</p></section>
     </section>
   </section>
 
   <footer class="footer">
     <span>TK LEADERBOARD • STATIC GITHUB PAGES BUILD</span>
-    <a href="https://github.com/ATritle/tkleaderboard" target="_blank" rel="noopener" class="repo-link">
-      <img src="assets/repository-logo.png" alt="GitHub Repository">
-    </a>
+    <a href="admin.html" class="admin-link">ADMIN</a>
+    <a href="https://github.com/ATritle/tkleaderboard" target="_blank" rel="noopener" class="repo-link"><img src="assets/repository-logo.png" alt="GitHub Repository"></a>
   </footer>
 </main>
 <script src="app.js"></script>

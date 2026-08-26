@@ -302,3 +302,26 @@ input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(25
   .header-logo img{max-height:105px}
   .stats-grid{grid-template-columns:1fr}
 }
+
+/* Shared navigation / views */
+.view{display:none}.view.active-view{display:block}
+.panel-link{margin-top:16px;border:0;background:transparent;color:var(--accent);font-weight:900;cursor:pointer;padding:4px 0;letter-spacing:.4px}
+.admin-link{color:var(--accent);font-weight:900;letter-spacing:1px;margin-left:auto}
+.admin-header .header-count a{color:var(--accent);font-weight:900;letter-spacing:.8px}
+
+/* Admin */
+.admin-container{max-width:1050px}
+.admin-panel{margin-bottom:22px}
+.admin-note{color:#aeb7b9;max-width:850px;margin:0 0 20px}
+.admin-note strong{color:#e1e6e5}
+.admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.field{display:flex;flex-direction:column;gap:7px}.field.full{grid-column:1/-1}
+.field label{color:#9da7a9;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px}
+.field input,.field select,.field textarea{width:100%;background:#0b0f10;color:var(--text);border:1px solid #30383a;border-radius:7px;padding:11px 12px;outline:none}
+.field input,.field select{height:44px}.field textarea{resize:vertical;min-height:105px}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(255,122,0,.1)}
+.optional{font-weight:400;color:#687477;text-transform:none;letter-spacing:0}
+.admin-actions{display:flex;gap:10px;margin-top:20px}.btn.primary{background:var(--accent);border-color:var(--accent);color:#111}
+.status{display:none;margin-top:15px;padding:12px 14px;border-radius:7px;border:1px solid var(--line);background:#0d1213;color:#b9c1c2}.status.show{display:block}.status.success{border-color:#3c5b43;color:#a8d2ad}.status.error{border-color:#653434;color:#ff9b9b}.status.working{border-color:#5b4a30;color:#ffd19c}
+.auth-panel{border-color:#34383a}.token-help{margin:8px 0 0;color:#687477;font-size:12px}
+@media(max-width:750px){.admin-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.admin-actions{flex-wrap:wrap}.admin-actions .btn{flex:1}.admin-header{height:165px}}

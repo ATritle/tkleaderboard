@@ -2,31 +2,29 @@
 
 Static GitHub Pages site for tracking Escape From Tarkov team-kill incidents.
 
-## Data
-All incidents live in `data/teamkills.json`.
+## Public site
+- `index.html` is the public leaderboard.
+- Dashboard, Leaderboard, and Incidents tabs are functional.
+- Incident data is loaded from `data/teamkills.json`.
 
-Each record contains:
-- `id`
-- `killer`
-- `victim`
-- `date`
-- `map`
-- `notes`
-- `clip`
+## Admin page
+Open `admin.html` to add incidents without editing JSON manually.
 
-There is intentionally no incident type field.
+The admin page uses the GitHub Contents API to read and update `data/teamkills.json` in `ATritle/tkleaderboard`.
 
-## Updating the leaderboard
-Edit `data/teamkills.json`, commit the change, and GitHub Pages will publish the updated list.
+### GitHub token
+Create a fine-grained GitHub Personal Access Token limited to this repository:
+- Repository access: `ATritle/tkleaderboard`
+- Repository permissions: **Contents → Read and write**
 
-## GitHub Pages
-In the repository, go to **Settings → Pages** and choose:
-- Source: **Deploy from a branch**
-- Branch: **main**
-- Folder: **/ (root)**
+The token is entered into the admin page at runtime and is not stored by the site.
 
-The site can later be attached to a custom domain without changing the app.
-
-## Images
-- `assets/repository-logo.png` is the supplied repository-link image.
-- The current Escape from Tarkov header logo is loaded from PNGimg; it can later be replaced with a locally stored logo if desired.
+## Files
+- `index.html` — public site
+- `admin.html` — admin/data-entry page
+- `app.js` — public site logic
+- `admin.js` — GitHub-backed admin logic
+- `styles.css` — shared styling
+- `data/teamkills.json` — source-of-truth incident data
+- `assets/eft-logo.png` — EFT header logo
+- `assets/repository-logo.png` — repository link image

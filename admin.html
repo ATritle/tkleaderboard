@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090b0c">
+  <title>TK Leaderboard Admin</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="hero-header admin-header">
+  <div class="header-left"><div class="eyebrow">ESCAPE FROM TARKOV</div><h1>TK LEADERBOARD ADMIN</h1><p>Add incidents directly to the GitHub data file.</p></div>
+  <div class="header-logo"><img src="assets/eft-logo.png" alt="Escape from Tarkov"></div>
+  <div class="header-count"><a href="index.html">← PUBLIC SITE</a></div>
+</header>
+
+<main class="container admin-container">
+  <section class="panel admin-panel">
+    <div class="section-title"><span class="section-icon">✚</span><div><div class="eyebrow">NEW INCIDENT</div><h2>ADD TEAM KILL</h2></div></div>
+    <p class="admin-note">Enter the incident below. When you press <strong>ADD TEAM KILL</strong>, the page reads the current GitHub file, adds the next TK number, and commits the updated JSON to this repository.</p>
+
+    <div class="admin-grid">
+      <div class="field"><label for="killer">Player Who Team Killed</label><input id="killer" list="playerNames" autocomplete="off" required placeholder="Player name"></div>
+      <div class="field"><label for="victim">Player Team Killed</label><input id="victim" list="playerNames" autocomplete="off" required placeholder="Player name"></div>
+      <div class="field"><label for="date">Date</label><input id="date" type="date" required></div>
+      <div class="field"><label for="map">Map</label><select id="map" required><option value="">Select map...</option><option>Customs</option><option>Factory</option><option>Interchange</option><option>Reserve</option><option>Shoreline</option><option>Woods</option><option>Labs</option><option>Lighthouse</option><option>Streets of Tarkov</option><option>Ground Zero</option><option>Terminal</option><option>Other</option></select></div>
+      <div class="field full"><label for="notes">Notes</label><textarea id="notes" rows="4" placeholder="What happened?"></textarea></div>
+      <div class="field full"><label for="clip">Video Clip URL <span class="optional">(optional)</span></label><input id="clip" type="url" placeholder="https://..." autocomplete="off"></div>
+    </div>
+    <datalist id="playerNames"></datalist>
+
+    <div class="admin-actions"><button id="addKill" class="btn primary" type="button">✚ &nbsp; ADD TEAM KILL</button><button id="clearForm" class="btn ghost" type="button">CLEAR</button></div>
+    <div id="status" class="status" aria-live="polite"></div>
+  </section>
+
+  <section class="panel admin-panel auth-panel">
+    <div class="section-title"><span class="section-icon">⚿</span><div><div class="eyebrow">GITHUB ACCESS</div><h2>ADMIN TOKEN</h2></div></div>
+    <p class="admin-note">Your GitHub token is used only in this browser session and is not saved by this page. Use a <strong>fine-grained token</strong> limited to <strong>ATritle/tkleaderboard</strong> with repository <strong>Contents: Read and write</strong> permission.</p>
+    <div class="field"><label for="token">GitHub Personal Access Token</label><input id="token" type="password" autocomplete="off" placeholder="github_pat_..." spellcheck="false"></div>
+    <p class="token-help">You only need to enter the token before making changes. The public leaderboard does not need a token.</p>
+  </section>
+
+  <section class="panel admin-panel">
+    <div class="section-title"><span class="section-icon">☷</span><div><div class="eyebrow">CURRENT DATA</div><h2>RECENT INCIDENTS</h2></div></div>
+    <div id="adminRecent" class="incident-table"></div>
+  </section>
+</main>
+<script src="admin.js"></script>
+</body>
+</html>
