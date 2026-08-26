@@ -1,0 +1,4 @@
+.delete-tk{height:30px;padding:0 9px;border:1px solid #5b3434;border-radius:6px;background:#1a1112;color:#e28d8d;font-size:10px;font-weight:900;letter-spacing:.5px;cursor:pointer}
+.delete-tk:hover{border-color:#a74b4b;color:#ffb0b0;background:#211416}
+.delete-tk:disabled{opacity:.5;cursor:wait}
+@media(max-width:1100px){.table-head,.incident-row{grid-template-columns:100px 1fr 1fr 120px 130px 1.8fr 60px 85px}}

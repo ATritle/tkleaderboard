@@ -14,7 +14,7 @@ function setStatus(id,message,type='show'){const el=$(id);el.textContent=message
 function clearStatus(id){$(id).textContent='';$(id).className='status'}
 function token(){return $('token').value.trim()}
 function headers(auth=false){const h={'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};if(auth)h.Authorization=`Bearer ${token()}`;return h}
-function decode(content){const d=atob(content.replace(/\n/g,''));return JSON.parse(new TextDecoder().decode(Uint8Array.from(d,c=>c.charCodeAt(0))) )}
+function decode(content){const d=atob(content.replace(/\n/g,''));return JSON.parse(new TextDecoder().decode(Uint8Array.from(d,c=>c.charCodeAt(0))))}
 function encode(data){const bytes=new TextEncoder().encode(JSON.stringify(data,null,2)+'\n');let b='';for(let i=0;i<bytes.length;i+=0x8000)b+=String.fromCharCode(...bytes.subarray(i,i+0x8000));return btoa(b)}
 async function readFile(path){const r=await fetch(`${API_BASE}/contents/${path}?ref=${BRANCH}&t=${Date.now()}`,{headers:headers(false)});if(!r.ok)throw new Error(`Could not read ${path} (HTTP ${r.status}).`);const j=await r.json();return{sha:j.sha,data:decode(j.content)}}
 
@@ -61,8 +61,54 @@ async function removePlayer(name){
 function nextId(data){const max=data.reduce((n,i)=>Math.max(n,Number(String(i.id||'').replace(/^TK-/i,''))||0),0);return`TK-${String(max+1).padStart(4,'0')}`}
 function renderRecent(){
   const recent=[...incidents].sort((a,b)=>String(b.date).localeCompare(String(a.date))||String(b.id).localeCompare(String(a.id))).slice(0,10);
-  $('adminRecent').innerHTML=`<div class="table-head"><span>TK ID</span><span>KILLER</span><span>VICTIM</span><span>DATE</span><span>MAP</span><span>NOTES</span><span>CLIP</span></div>`+recent.map(i=>`<div class="incident-row"><span class="tkid">${esc(i.id)}</span><span class="killer">${esc(titleCase(i.killer))}</span><span class="victim">${esc(titleCase(i.victim))}</span><span class="date">${formatDate(i.date)}</span><span class="map">${esc(i.map)}</span><span class="notes" title="${esc(i.notes||'')}">${esc(i.notes||'No notes recorded.')}</span><span>${i.clip?`<a class="clip-icon" href="${esc(i.clip)}" target="_blank" rel="noopener">↗</a>`:''}</span></div>`).join('');
+  $('adminRecent').innerHTML=`<div class="table-head"><span>TK ID</span><span>KILLER</span><span>VICTIM</span><span>DATE</span><span>MAP</span><span>NOTES</span><span>CLIP</span><span>ACTION</span></div>`+
+    recent.map(i=>`<div class="incident-row"><span class="tkid">${esc(i.id)}</span><span class="killer">${esc(titleCase(i.killer))}</span><span class="victim">${esc(titleCase(i.victim))}</span><span class="date">${formatDate(i.date)}</span><span class="map">${esc(i.map)}</span><span class="notes" title="${esc(i.notes||'')}">${esc(i.notes||'No notes recorded.')}</span><span>${i.clip?`<a class="clip-icon" href="${esc(i.clip)}" target="_blank" rel="noopener">↗</a>`:''}</span><span><button class="delete-tk" type="button" data-id="${esc(i.id)}">DELETE</button></span></div>`).join('');
+  document.querySelectorAll('.delete-tk').forEach(b=>b.addEventListener('click',()=>deleteKill(b.dataset.id)));
 }
+
+async function deleteKill(id){
+  const incident=incidents.find(i=>String(i.id)===String(id));
+  if(!incident)return;
+  const description=`${incident.id}: ${incident.killer} → ${incident.victim}`;
+  if(!confirm(`DELETE ${description}?\n\nThis will permanently remove the TK from the GitHub data file and the public leaderboard.\n\nThis cannot be undone.`))return;
+  if(!token()){setStatus('status','Enter your GitHub Personal Access Token before deleting an incident.','error');$('token').focus();return}
+
+  const buttons=document.querySelectorAll(`.delete-tk[data-id="${CSS.escape(id)}"]`);
+  buttons.forEach(b=>b.disabled=true);
+  setStatus('status',`Deleting ${id} from GitHub...`,'working');
+
+  try{
+    // Re-read immediately before writing so we delete the current version
+    // rather than accidentally overwriting a newer incident.
+    const current=await readFile(INCIDENT_FILE);
+    const data=Array.isArray(current.data)?current.data:[];
+    const updated=data.filter(i=>String(i.id)!==String(id));
+
+    if(updated.length===data.length)throw new Error(`${id} was not found in the current GitHub data.`);
+    const put=await fetch(`${API_BASE}/contents/${INCIDENT_FILE}`,{
+      method:'PUT',
+      headers:{...headers(true),'Content-Type':'application/json'},
+      body:JSON.stringify({
+        message:`Delete ${id}: ${incident.killer} → ${incident.victim}`,
+        content:encode(updated),
+        sha:current.sha,
+        branch:BRANCH
+      })
+    });
+    const result=await put.json();
+    if(!put.ok)throw new Error(result.message||`GitHub delete failed (HTTP ${put.status}).`);
+
+    incidents=updated;
+    renderRecent();
+    renderPlayers();
+    setStatus('status',`${id} was deleted successfully. GitHub and the public leaderboard have been updated.`,'success');
+  }catch(e){
+    setStatus('status',e.message,'error');
+  }finally{
+    document.querySelectorAll('.delete-tk').forEach(b=>b.disabled=false);
+  }
+}
+
 function validate(){const k=$('killer').value,v=$('victim').value,d=$('date').value,m=$('map').value,c=$('clip').value.trim();if(!k||!v)return'Select both players.';if(norm(k)===norm(v))return'The killer and victim cannot be the same player.';if(!d)return'Select a date.';if(!m)return'Select a map.';if(c){try{new URL(c)}catch{return'The video clip URL is not valid.'}}return''}
 async function addKill(){
   clearStatus('status');const error=validate();if(error){setStatus('status',error,'error');return}
