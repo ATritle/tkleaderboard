@@ -7,7 +7,7 @@
 body{margin:0;background:radial-gradient(circle at 12% -10%,#263034 0,#090b0c 34%);color:var(--text);font:15px/1.5 Arial,Helvetica,sans-serif}
 a{color:var(--accent2);text-decoration:none}
 .topbar{position:sticky;top:0;z-index:10;display:flex;justify-content:space-between;gap:24px;align-items:flex-end;padding:22px 5vw;border-bottom:1px solid var(--line);background:rgba(9,11,12,.94);backdrop-filter:blur(10px)}
-h1,h2,h3,p{margin:0}.brand p{color:var(--muted);margin-top:4px}.eyebrow{font-size:11px;letter-spacing:2px;color:var(--accent);font-weight:800}.brand{min-width:0}.brand h1{font-size:28px;letter-spacing:1px}.eft-logo-wrap{display:flex;align-items:center;justify-content:center;flex:1;min-width:180px}.eft-logo{display:block;width:min(230px,28vw);max-height:72px;object-fit:contain;filter:grayscale(.15) drop-shadow(0 4px 10px rgba(0,0,0,.55))}.topbar-meta{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:1px;white-space:nowrap}
+h1,h2,h3,p{margin:0}.brand p{color:var(--muted);margin-top:4px}.eyebrow{font-size:11px;letter-spacing:2px;color:var(--accent);font-weight:800}.brand{min-width:0}.brand h1{font-size:28px;letter-spacing:1px}.eft-logo-wrap{display:flex;align-items:center;justify-content:center;flex:1;min-width:180px}.eft-logo{display:block;width:min(430px,42vw);max-height:120px;height:auto;object-fit:contain;filter:grayscale(.15) drop-shadow(0 4px 10px rgba(0,0,0,.55))}.topbar-meta{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:1px;white-space:nowrap}
 .container{max-width:1250px;margin:auto;padding:28px 5vw 70px}
 .stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
 .stat-card,.panel,.incident,.empty{background:linear-gradient(145deg,var(--panel2),var(--panel));border:1px solid var(--line);box-shadow:var(--shadow)}
@@ -29,6 +29,8 @@ input,select{background:#0b0f10;color:var(--text);border:1px solid #30383a;borde
 .footer{display:flex;justify-content:space-between;gap:20px;align-items:center;color:#687477;font-size:12px;margin-top:30px;padding-top:18px;border-top:1px solid var(--line)}.repo-link{display:flex;align-items:center;justify-content:center;width:58px;height:58px;border-radius:50%;transition:transform .18s ease,filter .18s ease}.repo-link img{display:block;width:54px;height:54px;object-fit:contain}.repo-link:hover{transform:scale(1.08);filter:drop-shadow(0 0 10px rgba(255,122,0,.45))}
 .hidden{display:none!important}
 @media(max-width:950px){.stats-grid{grid-template-columns:repeat(3,1fr)}.leaderboard{grid-template-columns:1fr 1fr}}
-@media(max-width:700px){.topbar{align-items:flex-start;flex-direction:column}.eft-logo-wrap{width:100%;justify-content:flex-start}.eft-logo{width:190px;max-height:64px}.stats-grid{grid-template-columns:1fr 1fr}.leaderboard{grid-template-columns:1fr}.toolbar{flex-direction:column;align-items:stretch}.filters>*{flex:1;width:auto!important}.incident{grid-template-columns:1fr}.incident-actions{justify-content:flex-start}.footer{flex-direction:column}}
+@media(max-width:700px){.topbar{align-items:flex-start;flex-direction:column}.eft-logo-wrap{width:100%;justify-content:flex-start}.eft-logo{display:block;width:min(430px,42vw);max-height:120px;height:auto;object-fit:contain;filter:grayscale(.15) drop-shadow(0 4px 10px rgba(0,0,0,.55))}.stats-grid{grid-template-columns:1fr 1fr}.leaderboard{grid-template-columns:1fr}.toolbar{flex-direction:column;align-items:stretch}.filters>*{flex:1;width:auto!important}.incident{grid-template-columns:1fr}.incident-actions{justify-content:flex-start}.footer{flex-direction:column}}
 
 .brand-center img{display:block;width:min(360px,34vw);max-height:82px;object-fit:contain}
+
+@media(max-width:700px){.eft-logo{width:min(420px,78vw);max-height:105px}}
