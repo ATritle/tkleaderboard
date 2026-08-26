@@ -15,7 +15,10 @@
     <p>Keeping track of who can't tell friend from foe.</p>
   </div>
   <div class="header-logo"><img src="assets/eft-logo.png" alt="Escape from Tarkov"></div>
-  <div class="header-count"><strong id="recordCount">0 INCIDENTS</strong></div>
+  <div class="header-count">
+    <strong id="recordCount">0 INCIDENTS</strong>
+    <span id="lastUpdated" class="last-updated">DATA UPDATED — —</span>
+  </div>
 </header>
 
 <nav class="main-nav" aria-label="Main navigation">
@@ -35,7 +38,6 @@
       <article class="stat-card"><div class="stat-icon">⌖</div><div><span>Top TK Player</span><strong id="topKiller">—</strong><small>Most team kills</small></div></article>
       <article class="stat-card"><div class="stat-icon">♟</div><div><span>Most Victimized</span><strong id="topVictim">—</strong><small>Most TKs received</small></div></article>
     </section>
-
     <section class="panel">
       <div class="section-title"><span class="section-icon">☷</span><div><div class="eyebrow">LATEST</div><h2>RECENT TEAM KILLS</h2></div></div>
       <div id="dashboardRecent" class="incident-table"></div>

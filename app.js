@@ -4,10 +4,29 @@ const norm=s=>String(s??'').trim().replace(/\s+/g,' ').toLowerCase();
 const titleCase=s=>String(s??'').trim().replace(/\s+/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
 
 async function loadData(){
-  try{const res=await fetch(`data/teamkills.json?v=${Date.now()}`);if(!res.ok)throw new Error(`HTTP ${res.status}`);const data=await res.json();state.incidents=Array.isArray(data)?data:[]}
-  catch(err){console.error(err);state.incidents=[]}
-  state.filtered=[...state.incidents];populateFilters();render();
+  try{
+    const res=await fetch(`data/teamkills.json?v=${Date.now()}`);
+    if(!res.ok)throw new Error(`HTTP ${res.status}`);
+    const data=await res.json();
+    state.incidents=Array.isArray(data)?data:[];
+    updateLastUpdated();
+  }catch(err){
+    console.error(err);
+    state.incidents=[];
+    $('lastUpdated').textContent='DATA UPDATE FAILED';
+  }
+  state.filtered=[...state.incidents];
+  populateFilters();
+  render();
 }
+
+function updateLastUpdated(){
+  const now=new Date();
+  const date=now.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
+  const time=now.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
+  $('lastUpdated').textContent=`DATA UPDATED — ${date.toUpperCase()} ${time}`;
+}
+
 function populateFilters(){
   const maps=[...new Set(state.incidents.map(i=>i.map).filter(Boolean))].sort();
   const players=[...new Set(state.incidents.flatMap(i=>[titleCase(i.killer),titleCase(i.victim)]).filter(Boolean))].sort();
@@ -24,10 +43,13 @@ function countBy(items,fn){return items.reduce((a,x)=>{const k=fn(x);if(k)a[k]=(
 function winner(counts){const row=Object.entries(counts).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]))[0];return row?titleCase(row[0]):'—'}
 function render(){
   const all=state.incidents;
-  $('totalKills').textContent=all.length;$('recordCount').textContent=`${all.length} ${all.length===1?'INCIDENT':'INCIDENTS'}`;
+  $('totalKills').textContent=all.length;
+  $('recordCount').textContent=`${all.length} ${all.length===1?'INCIDENT':'INCIDENTS'}`;
   const players=[...new Set(all.flatMap(i=>[norm(i.killer),norm(i.victim)]).filter(Boolean))];
-  $('playerCount').textContent=players.length;$('mapCount').textContent=[...new Set(all.map(i=>i.map).filter(Boolean))].length;
-  $('topKiller').textContent=winner(countBy(all,i=>norm(i.killer)));$('topVictim').textContent=winner(countBy(all,i=>norm(i.victim)));
+  $('playerCount').textContent=players.length;
+  $('mapCount').textContent=[...new Set(all.map(i=>i.map).filter(Boolean))].length;
+  $('topKiller').textContent=winner(countBy(all,i=>norm(i.killer)));
+  $('topVictim').textContent=winner(countBy(all,i=>norm(i.victim)));
   renderLeaderboard();renderIncidentTable();renderRecent();
 }
 function renderLeaderboard(){
@@ -44,6 +66,10 @@ function formatDate(v){if(!v)return'Unknown';const d=new Date(`${v}T12:00:00`);r
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 
 document.querySelectorAll('.nav-item,.panel-link').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.view)));
-$('searchInput').addEventListener('input',applyFilters);$('mapFilter').addEventListener('change',applyFilters);$('playerFilter').addEventListener('change',applyFilters);$('resetFilters').addEventListener('click',()=>{$('searchInput').value='';$('mapFilter').value='';$('playerFilter').value='';applyFilters()});
-const initial=location.hash.replace('#','');showView(['dashboard','leaderboard','incidents'].includes(initial)?initial:'dashboard');
+$('searchInput').addEventListener('input',applyFilters);
+$('mapFilter').addEventListener('change',applyFilters);
+$('playerFilter').addEventListener('change',applyFilters);
+$('resetFilters').addEventListener('click',()=>{$('searchInput').value='';$('mapFilter').value='';$('playerFilter').value='';applyFilters()});
+const initial=location.hash.replace('#','');
+showView(['dashboard','leaderboard','incidents'].includes(initial)?initial:'dashboard');
 loadData();

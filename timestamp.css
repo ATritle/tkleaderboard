@@ -1,0 +1,11 @@
+
+/* Last updated timestamp */
+.last-updated{
+  display:block;
+  margin-top:6px;
+  color:#687477;
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:1px;
+  white-space:nowrap;
+}
