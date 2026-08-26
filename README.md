@@ -26,3 +26,7 @@ In the repository, go to **Settings → Pages** and choose:
 - Folder: **/ (root)**
 
 The site can later be attached to a custom domain without changing the app.
+
+## Images
+- `assets/repository-logo.png` is the supplied repository-link image.
+- The current Escape from Tarkov header logo is loaded from PNGimg; it can later be replaced with a locally stored logo if desired.
