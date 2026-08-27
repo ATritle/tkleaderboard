@@ -257,7 +257,7 @@ a{color:var(--accent2);text-decoration:none}
   display:inline-block;
   width:max-content;
   color:inherit;
-  cursor:help;
+  cursor:pointer;
   outline:none;
   vertical-align:baseline;
 }
@@ -321,13 +321,23 @@ a{color:var(--accent2);text-decoration:none}
 #mapCount .hover-target,
 #topKiller .hover-target,
 #topVictim .hover-target{
+  display:inline-block;
   color:var(--accent) !important;
   font-family:inherit !important;
-  font-size:inherit !important;
-  font-weight:inherit !important;
-  line-height:inherit !important;
-  letter-spacing:inherit !important;
+  font-size:30px !important;
+  font-weight:900 !important;
+  line-height:1.1 !important;
+  letter-spacing:0 !important;
   text-transform:none !important;
+  cursor:pointer;
+}
+
+#mapCount .hover-label,
+#topKiller .hover-label,
+#topVictim .hover-label{
+  color:inherit;
+  font:inherit;
+  letter-spacing:inherit;
 }
 
 #mapCount .hover-card,
