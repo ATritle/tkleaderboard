@@ -26,5 +26,9 @@
   {
     "name": "Triple_G",
     "image": "tripleg.png"
+  },
+  {
+    "name": "Twister",
+    "image": "twister.png"
   }
 ]
