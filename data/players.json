@@ -1,5 +1,9 @@
 [
   {
+    "name": "ActionJaxon",
+    "image": "actionjaxon.png"
+  },
+  {
     "name": "DrLupo",
     "image": "drlupo.png"
   },
@@ -22,9 +26,5 @@
   {
     "name": "Triple_G",
     "image": "tripleg.png"
-  },
-  {
-    "name": "ActionJaxon",
-    "image": ""
   }
 ]
