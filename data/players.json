@@ -1,7 +1,22 @@
 [
-  "DrLupo",
-  "FudgeXL",
-  "RealKraftyy",
-  "ThePoolshark",
-  "Triple_G"
+  {
+    "name": "DrLupo",
+    "image": "drlupo.png"
+  },
+  {
+    "name": "FudgeXL",
+    "image": ""
+  },
+  {
+    "name": "RealKraftyy",
+    "image": ""
+  },
+  {
+    "name": "ThePoolshark",
+    "image": ""
+  },
+  {
+    "name": "Triple_G",
+    "image": ""
+  }
 ]
