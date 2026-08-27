@@ -3,7 +3,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#090b0c"><title>TK Leaderboard Admin</title>
 <link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="admin-roster.css"><link rel="stylesheet" href="admin-delete.css">
-</head><body>
+</head><body data-admin-page="true">
 <header class="hero-header admin-header">
 <div class="header-left"><div class="eyebrow">ESCAPE FROM TARKOV</div><h1>TK LEADERBOARD ADMIN</h1><p>Manage players and add incidents directly to GitHub.</p></div>
 <div class="header-logo"><img src="assets/eft-logo.png" alt="Escape from Tarkov"></div>
@@ -34,4 +34,4 @@
 <div class="field"><label for="token">GitHub Personal Access Token</label><input id="token" type="password" autocomplete="off" placeholder="github_pat_..." spellcheck="false"></div>
 <p class="token-help">The public leaderboard does not need a token.</p></section>
 <section class="panel admin-panel"><div class="section-title"><span class="section-icon">☷</span><div><div class="eyebrow">CURRENT DATA</div><h2>RECENT INCIDENTS</h2></div></div><div id="adminRecent" class="incident-table"></div></section>
-</main><script src="admin.js"></script></body></html>
+</main><script src="admin.js"></script><script src="admin-auth.js"></script></body></html>
