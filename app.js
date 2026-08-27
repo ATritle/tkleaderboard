@@ -1,31 +1,509 @@
-const state={incidents:[],players:[],filtered:[]};
-const $=id=>document.getElementById(id),norm=s=>String(s??'').trim().replace(/\s+/g,' ').toLowerCase(),display=s=>String(s??'').trim().replace(/\s+/g,' ');
-function normalizePlayers(data){return[...new Map((Array.isArray(data)?data:[]).map(x=>typeof x==='string'?[norm(x),{name:display(x),image:''}]:[norm(x?.name),{name:display(x?.name),image:String(x?.image??'').trim()}]).filter(([k,p])=>k&&p.name)).values()]}
-async function loadData(){try{const[ir,pr]=await Promise.all([fetch(`data/teamkills.json?v=${Date.now()}`),fetch(`data/players.json?v=${Date.now()}`)]);if(!ir.ok)throw Error(`HTTP ${ir.status}`);const incidentData=await ir.json();state.incidents=Array.isArray(incidentData)?incidentData:[];state.players=pr.ok?normalizePlayers(await pr.json()):[];updateTime()}catch(e){console.error(e);state.incidents=[];state.players=[];$('lastUpdated').textContent='DATA UPDATE FAILED'}state.filtered=[...state.incidents];populateFilters();render()}
-function updateTime(){const d=new Date(),ds=d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}),ts=d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});$('lastUpdated').textContent=`DATA UPDATED — ${ds.toUpperCase()} ${ts}`}
-function imagePath(filename){
-  if(!filename)return '';
-  if(/^https?:\/\//i.test(filename))return filename;
-  return `assets/${filename}`;
-}
-function playerProfile(name){return state.players.find(p=>norm(p.name)===norm(name))||{name:display(name),image:''}}
-function playerNameHtml(name){const shown=display(name),p=playerProfile(shown);if(!p.image)return esc(shown);return`<span class="player-hover" tabindex="0">${esc(shown)}<span class="player-hover-card"><img src="${esc(imagePath(p.image))}" alt="${esc(shown)}" loading="lazy" onerror="this.closest('.player-hover').classList.add('image-error')"><span class="player-hover-name">${esc(shown)}</span></span></span>`}
-function populateFilters(){const maps=[...new Set(state.incidents.map(i=>i.map).filter(Boolean))].sort(),players=[...new Map(state.incidents.map(i=>i.killer).filter(Boolean).map(p=>[norm(p),display(p)])).values()].sort((a,b)=>a.localeCompare(b));$('mapFilter').innerHTML='<option value="">All Maps</option>'+maps.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('');$('playerFilter').innerHTML='<option value="">All Players</option>'+players.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('')}
-function applyFilters(){const q=norm($('searchInput').value),m=$('mapFilter').value,p=norm($('playerFilter').value);state.filtered=state.incidents.filter(i=>{const t=[i.id,i.killer,i.victim,i.date,i.map,i.notes].join(' ').toLowerCase();return(!q||t.includes(q))&&(!m||i.map===m)&&(!p||norm(i.killer)===p||norm(i.victim)===p)}).sort(sortIncidents);renderIncidentTable()}
-function sortIncidents(a,b){return String(b.date).localeCompare(String(a.date))||String(b.id).localeCompare(String(a.id))}
-function countBy(fn){return state.incidents.reduce((o,i)=>{const k=fn(i);if(k)o[k]=(o[k]||0)+1;return o},{})}
-function storedName(key,field){const i=state.incidents.find(x=>norm(x[field])===key);return i?display(i[field]):key}
-function topPlayer(c,field){const x=Object.entries(c).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]))[0];return x?playerNameHtml(storedName(x[0],field)):'—'}
-function render(){const a=state.incidents,k=countBy(i=>norm(i.killer)),v=countBy(i=>norm(i.victim));$('totalKills').textContent=a.length;$('recordCount').textContent=`${a.length} ${a.length===1?'INCIDENT':'INCIDENTS'}`;$('playerCount').textContent=Object.keys(k).length;$('mapCount').textContent=new Set(a.map(i=>i.map).filter(Boolean)).size;$('topKiller').innerHTML=topPlayer(k,'killer');$('topVictim').innerHTML=topPlayer(v,'victim');renderLeaderboard();renderIncidentTable();renderRecent()}
-function renderLeaderboard(){const a=state.incidents,k=countBy(i=>norm(i.killer)),names=Object.keys(k).sort((x,y)=>k[y]-k[x]||x.localeCompare(y));$('leaderboard').innerHTML=names.length?'<div class="rank-card table-label"><div>#</div><div>PLAYER</div><div class="rank-count">TEAM KILLS</div><div class="rank-count">VICTIMS</div><div class="rank-count">VICTIMIZED</div><div class="rank-count">TK RATIO</div></div>'+names.map((n,i)=>{const kills=k[n],victims=new Set(a.filter(x=>norm(x.killer)===n).map(x=>norm(x.victim))).size,received=a.filter(x=>norm(x.killer)!==n&&norm(x.victim)===n).length,total=kills+received,ratio=total?Math.round(kills/total*100):100;return`<div class="rank-card"><div class="rank">${i+1}</div><div class="rank-name">${playerNameHtml(storedName(n,'killer'))}</div><div class="rank-count"><strong>${kills}</strong></div><div class="rank-count"><strong>${victims}</strong></div><div class="rank-count"><strong>${received}</strong></div><div class="rank-count"><strong>${ratio}%</strong></div></div>`}).join(''):'<div class="empty"><p>No team killers recorded yet.</p></div>'}
-function tableHeader(){return'<div class="table-head"><span>TK ID</span><span>KILLER</span><span>VICTIM</span><span>DATE</span><span>MAP</span><span>NOTES</span><span>CLIP</span></div>'}
-function row(i){return`<div class="incident-row"><span class="tkid">${esc(i.id)}</span><span class="killer">${playerNameHtml(i.killer)}</span><span class="victim">${playerNameHtml(i.victim)}</span><span class="date">${date(i.date)}</span><span class="map">${esc(i.map)}</span><span class="notes">${esc(i.notes||'No notes recorded.')}</span><span>${i.clip?`<a class="clip-icon" href="${esc(i.clip)}" target="_blank" rel="noopener">↗</a>`:''}</span></div>`}
-function renderIncidentTable(){$('incidentTable').innerHTML=tableHeader()+state.filtered.map(row).join('');$('empty').classList.toggle('hidden',state.filtered.length!==0)}function renderRecent(){const a=[...state.incidents].sort(sortIncidents).slice(0,5);$('dashboardRecent').innerHTML=a.length?tableHeader()+a.map(row).join(''):'<div class="empty"><p>No incidents recorded yet.</p></div>'}
-function showView(v){document.querySelectorAll('.view').forEach(x=>x.classList.toggle('active-view',x.id===`view-${v}`));document.querySelectorAll('.nav-item').forEach(x=>x.classList.toggle('active',x.dataset.view===v));history.replaceState(null,'',`#${v}`)}
-function date(v){const d=new Date(`${v}T12:00:00`);return Number.isNaN(d.getTime())?esc(v):d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
-document.querySelectorAll('.nav-item,.panel-link').forEach(b=>b.onclick=()=>showView(b.dataset.view));$('searchInput').oninput=applyFilters;$('mapFilter').onchange=applyFilters;$('playerFilter').onchange=applyFilters;$('resetFilters').onclick=()=>{$('searchInput').value='';$('mapFilter').value='';$('playerFilter').value='';applyFilters()};showView(['dashboard','leaderboard','incidents'].includes(location.hash.slice(1))?location.hash.slice(1):'dashboard');
-loadData();
+const state = {
+  incidents: [],
+  filtered: []
+};
 
-/* Hover-card styling is kept here so no existing stylesheet needs to be replaced. */
-const hoverStyle=document.createElement('style');hoverStyle.textContent=`
-.player-hover{position:relative;display:inline-block;cursor:help;outline:none}.player-hover-card{position:absolute;left:0;bottom:calc(100% + 12px);width:190px;padding:8px;background:#0b0e0f;border:1px solid #ff7a00;border-radius:8px;box-shadow:0 12px 30px rgba(0,0,0,.65);opacity:0;visibility:hidden;pointer-events:none;transform:translateY(6px);transition:opacity .16s ease,transform .16s ease,visibility .16s ease;z-index:1000}.player-hover-card img{display:block;width:174px;height:174px;object-fit:cover;border-radius:5px;background:#111516}.player-hover-name{display:block;margin-top:7px;color:#f1f3f4;font-size:12px;font-weight:700;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.player-hover:hover .player-hover-card,.player-hover:focus .player-hover-card{opacity:1;visibility:visible;transform:translateY(0)}.rank-name .player-hover-card{left:0}#topKiller .player-hover,#topVictim .player-hover{color:#ff7a00!important;font-family:inherit;font-size:inherit;font-weight:inherit;line-height:inherit;text-transform:none!important;letter-spacing:inherit}.top-killer .player-hover-card,.top-victim .player-hover-card{left:50%;transform:translateX(-50%) translateY(6px)}.top-killer .player-hover:hover .player-hover-card,.top-killer .player-hover:focus .player-hover-card,.top-victim .player-hover:hover .player-hover-card,.top-victim .player-hover:focus .player-hover-card{transform:translateX(-50%) translateY(0)}.player-hover.image-error .player-hover-card{display:none}@media(max-width:700px){.player-hover-card{width:150px}.player-hover-card img{width:134px;height:134px}}`;document.head.appendChild(hoverStyle);
+const $ = id => document.getElementById(id);
+
+const norm = s =>
+  String(s ?? '').trim().replace(/\s+/g, ' ').toLowerCase();
+
+const display = s =>
+  String(s ?? '').trim().replace(/\s+/g, ' ');
+
+async function loadData() {
+  try {
+    const r = await fetch(`data/teamkills.json?v=${Date.now()}`);
+
+    if (!r.ok) {
+      throw new Error(`HTTP ${r.status}`);
+    }
+
+    const data = await r.json();
+
+    state.incidents = Array.isArray(data) ? data : [];
+
+    updateTime();
+  } catch (e) {
+    console.error('Failed to load teamkill data:', e);
+    state.incidents = [];
+
+    if ($('lastUpdated')) {
+      $('lastUpdated').textContent = 'DATA UPDATE FAILED';
+    }
+  }
+
+  state.filtered = [...state.incidents];
+
+  populate();
+  render();
+}
+
+function updateTime() {
+  const now = new Date();
+
+  const date = now.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
+
+  const time = now.toLocaleTimeString(undefined, {
+    hour: 'numeric',
+    minute: '2-digit'
+  });
+
+  $('lastUpdated').textContent =
+    `DATA UPDATED — ${date.toUpperCase()} ${time}`;
+}
+
+function populate() {
+  const maps = [
+    ...new Set(
+      state.incidents
+        .map(i => i.map)
+        .filter(Boolean)
+    )
+  ].sort();
+
+  /*
+   * The player filter is based only on killers.
+   * Victims do not need to be on the player roster.
+   */
+  const players = [
+    ...new Map(
+      state.incidents
+        .map(i => i.killer)
+        .filter(Boolean)
+        .map(p => [norm(p), display(p)])
+    ).values()
+  ].sort((a, b) => a.localeCompare(b));
+
+  $('mapFilter').innerHTML =
+    '<option value="">All Maps</option>' +
+    maps.map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join('');
+
+  $('playerFilter').innerHTML =
+    '<option value="">All Players</option>' +
+    players.map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join('');
+}
+
+function apply() {
+  const q = norm($('searchInput').value);
+  const map = $('mapFilter').value;
+  const player = norm($('playerFilter').value);
+
+  state.filtered = state.incidents
+    .filter(i => {
+      const text = [
+        i.id,
+        i.killer,
+        i.victim,
+        i.date,
+        i.map,
+        i.notes
+      ].join(' ').toLowerCase();
+
+      return (
+        (!q || text.includes(q)) &&
+        (!map || i.map === map) &&
+        (
+          !player ||
+          norm(i.killer) === player ||
+          norm(i.victim) === player
+        )
+      );
+    })
+    .sort(sortIncidents);
+
+  renderIncidentTable();
+}
+
+function sortIncidents(a, b) {
+  return (
+    String(b.date).localeCompare(String(a.date)) ||
+    String(b.id).localeCompare(String(a.id))
+  );
+}
+
+function countBy(fn) {
+  return state.incidents.reduce((counts, incident) => {
+    const key = fn(incident);
+
+    if (key) {
+      counts[key] = (counts[key] || 0) + 1;
+    }
+
+    return counts;
+  }, {});
+}
+
+/*
+ * Find the original stored name so capitalization is preserved.
+ *
+ * Example:
+ *   Triple_G stays Triple_G
+ *   ThePoolshark stays ThePoolshark
+ */
+function storedName(key, field) {
+  const incident = state.incidents.find(
+    i => norm(i[field]) === key
+  );
+
+  return incident ? display(incident[field]) : key;
+}
+
+function mostFrequentMap() {
+  const counts = countBy(i => norm(i.map));
+  const result = Object.entries(counts)
+    .sort(
+      (a, b) =>
+        b[1] - a[1] ||
+        a[0].localeCompare(b[0])
+    )[0];
+
+  if (!result) return '—';
+
+  const original = state.incidents.find(
+    i => norm(i.map) === result[0]
+  );
+
+  return original?.map || result[0];
+}
+
+function topPlayer(counts, field) {
+  const result = Object.entries(counts)
+    .sort(
+      (a, b) =>
+        b[1] - a[1] ||
+        a[0].localeCompare(b[0])
+    )[0];
+
+  return result
+    ? storedName(result[0], field)
+    : '—';
+}
+
+function render() {
+  const incidents = state.incidents;
+
+  const killerCounts =
+    countBy(i => norm(i.killer));
+
+  const victimCounts =
+    countBy(i => norm(i.victim));
+
+  $('totalKills').textContent =
+    incidents.length;
+
+  $('recordCount').textContent =
+    `${incidents.length} ${
+      incidents.length === 1
+        ? 'INCIDENT'
+        : 'INCIDENTS'
+    }`;
+
+  /*
+   * Only players who have TK'd someone
+   * count as leaderboard players.
+   */
+  $('playerCount').textContent =
+    Object.keys(killerCounts).length;
+
+  $('mapCount').textContent =
+    mostFrequentMap();
+
+  $('topKiller').textContent =
+    topPlayer(killerCounts, 'killer');
+
+  $('topVictim').textContent =
+    topPlayer(victimCounts, 'victim');
+
+  renderLeaderboard();
+  renderIncidentTable();
+  renderRecent();
+}
+
+function renderLeaderboard() {
+  const incidents = state.incidents;
+
+  /*
+   * IMPORTANT:
+   * The leaderboard is built ONLY from killers.
+   * A victim will not appear here unless they have
+   * also TK'd someone in another incident.
+   */
+  const killerCounts =
+    countBy(i => norm(i.killer));
+
+  const names =
+    Object.keys(killerCounts).sort(
+      (a, b) =>
+        killerCounts[b] - killerCounts[a] ||
+        a.localeCompare(b)
+    );
+
+  if (!names.length) {
+    $('leaderboard').innerHTML =
+      '<div class="empty"><p>No team killers recorded yet.</p></div>';
+
+    return;
+  }
+
+  $('leaderboard').innerHTML =
+    `<div class="rank-card table-label">
+      <div>#</div>
+      <div>PLAYER</div>
+      <div class="rank-count">TEAM KILLS</div>
+      <div class="rank-count">VICTIMS</div>
+      <div class="rank-count">VICTIMIZED</div>
+      <div class="rank-count">TK RATIO</div>
+    </div>` +
+
+    names.map((name, index) => {
+      const kills =
+        killerCounts[name] || 0;
+
+      const victims =
+        new Set(
+          incidents
+            .filter(i => norm(i.killer) === name)
+            .map(i => norm(i.victim))
+        ).size;
+
+      /*
+       * A leaderboard player can also have been
+       * victimized. This is counted separately.
+       */
+      const received =
+        incidents.filter(
+          i =>
+            norm(i.killer) !== name &&
+            norm(i.victim) === name
+        ).length;
+
+      const total =
+        kills + received;
+
+      const ratio =
+        total
+          ? Math.round((kills / total) * 100)
+          : 100;
+
+      return `
+        <div class="rank-card">
+          <div class="rank">${index + 1}</div>
+
+          <div class="rank-name">
+            ${esc(storedName(name, 'killer'))}
+          </div>
+
+          <div class="rank-count">
+            <strong>${kills}</strong>
+          </div>
+
+          <div class="rank-count">
+            <strong>${victims}</strong>
+          </div>
+
+          <div class="rank-count">
+            <strong>${received}</strong>
+          </div>
+
+          <div class="rank-count">
+            <strong>${ratio}%</strong>
+          </div>
+        </div>
+      `;
+    }).join('');
+}
+
+function tableHeader() {
+  return `
+    <div class="table-head">
+      <span>TK ID</span>
+      <span>KILLER</span>
+      <span>VICTIM</span>
+      <span>DATE</span>
+      <span>MAP</span>
+      <span>NOTES</span>
+      <span>CLIP</span>
+    </div>
+  `;
+}
+
+function incidentRow(i) {
+  const clip = i.clip
+    ? `
+      <a
+        class="clip-icon"
+        href="${esc(i.clip)}"
+        target="_blank"
+        rel="noopener"
+        title="View clip"
+      >↗</a>
+    `
+    : '';
+
+  return `
+    <div class="incident-row">
+      <span class="tkid">${esc(i.id)}</span>
+
+      <span class="killer">
+        ${esc(display(i.killer))}
+      </span>
+
+      <span class="victim">
+        ${esc(display(i.victim))}
+      </span>
+
+      <span class="date">
+        ${formatDate(i.date)}
+      </span>
+
+      <span class="map">
+        ${esc(i.map || 'Unknown')}
+      </span>
+
+      <span
+        class="notes"
+        title="${esc(i.notes || '')}"
+      >
+        ${esc(i.notes || 'No notes recorded.')}
+      </span>
+
+      <span>${clip}</span>
+    </div>
+  `;
+}
+
+function renderIncidentTable() {
+  $('incidentTable').innerHTML =
+    tableHeader() +
+    state.filtered.map(incidentRow).join('');
+
+  $('empty').classList.toggle(
+    'hidden',
+    state.filtered.length !== 0
+  );
+}
+
+function renderRecent() {
+  const recent = [...state.incidents]
+    .sort(sortIncidents)
+    .slice(0, 5);
+
+  $('dashboardRecent').innerHTML =
+    recent.length
+      ? tableHeader() +
+        recent.map(incidentRow).join('')
+      : '<div class="empty"><p>No incidents recorded yet.</p></div>';
+}
+
+function showView(view) {
+  document
+    .querySelectorAll('.view')
+    .forEach(section => {
+      section.classList.toggle(
+        'active-view',
+        section.id === `view-${view}`
+      );
+    });
+
+  document
+    .querySelectorAll('.nav-item')
+    .forEach(button => {
+      button.classList.toggle(
+        'active',
+        button.dataset.view === view
+      );
+    });
+
+  window.history.replaceState(
+    null,
+    '',
+    `#${view}`
+  );
+}
+
+function formatDate(value) {
+  if (!value) {
+    return 'Unknown';
+  }
+
+  const date =
+    new Date(`${value}T12:00:00`);
+
+  if (Number.isNaN(date.getTime())) {
+    return esc(value);
+  }
+
+  return date.toLocaleDateString(
+    undefined,
+    {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    }
+  );
+}
+
+function esc(value) {
+  return String(value ?? '').replace(
+    /[&<>"']/g,
+    character => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    }[character])
+  );
+}
+
+document
+  .querySelectorAll('.nav-item, .panel-link')
+  .forEach(button => {
+    button.addEventListener(
+      'click',
+      () => showView(button.dataset.view)
+    );
+  });
+
+$('searchInput').addEventListener(
+  'input',
+  apply
+);
+
+$('mapFilter').addEventListener(
+  'change',
+  apply
+);
+
+$('playerFilter').addEventListener(
+  'change',
+  apply
+);
+
+$('resetFilters').addEventListener(
+  'click',
+  () => {
+    $('searchInput').value = '';
+    $('mapFilter').value = '';
+    $('playerFilter').value = '';
+
+    apply();
+  }
+);
+
+const initialView =
+  location.hash.replace('#', '');
+
+showView(
+  ['dashboard', 'leaderboard', 'incidents']
+    .includes(initialView)
+    ? initialView
+    : 'dashboard'
+);
+
+loadData();
