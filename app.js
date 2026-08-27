@@ -5,11 +5,18 @@ async function loadData(){try{const[ir,pr]=await Promise.all([fetch(`data/teamki
 function updateTime(){const d=new Date(),ds=d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}),ts=d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});$('lastUpdated').textContent=`DATA UPDATED — ${ds.toUpperCase()} ${ts}`}
 function imagePath(filename){
   if(!filename)return '';
-  if(/^https?:\/\//i.test(filename))return filename;
-  return `assets/${filename}`;
+  const value=String(filename).trim();
+  if(/^https?:\/\//i.test(value) || value.startsWith('//'))return value;
+  if(value.startsWith('assets/'))return value;
+  return `assets/${value.split('/').map(encodeURIComponent).join('/')}`;
 }
 function playerProfile(name){return state.players.find(p=>norm(p.name)===norm(name))||{name:display(name),image:''}}
-function playerNameHtml(name){const shown=display(name),p=playerProfile(shown);if(!p.image)return esc(shown);return`<span class="player-hover" tabindex="0">${esc(shown)}<span class="player-hover-card"><img src="${esc(imagePath(p.image))}" alt="${esc(shown)}" loading="lazy" onerror="this.closest('.player-hover').classList.add('image-error')"><span class="player-hover-name">${esc(shown)}</span></span></span>`}
+function playerNameHtml(name){
+  const shown=display(name),p=playerProfile(shown);
+  if(!p.image)return esc(shown);
+  const src=imagePath(p.image);
+  return `<span class="player-hover" tabindex="0" data-player="${esc(shown)}">${esc(shown)}<span class="player-hover-card"><img src="${esc(src)}" alt="${esc(shown)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.textContent='IMAGE NOT FOUND'"><span class="player-hover-name">${esc(shown)}</span></span></span>`;
+}
 function populateFilters(){const maps=[...new Set(state.incidents.map(i=>i.map).filter(Boolean))].sort(),players=[...new Map(state.incidents.map(i=>i.killer).filter(Boolean).map(p=>[norm(p),display(p)])).values()].sort((a,b)=>a.localeCompare(b));$('mapFilter').innerHTML='<option value="">All Maps</option>'+maps.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('');$('playerFilter').innerHTML='<option value="">All Players</option>'+players.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('')}
 function applyFilters(){const q=norm($('searchInput').value),m=$('mapFilter').value,p=norm($('playerFilter').value);state.filtered=state.incidents.filter(i=>{const t=[i.id,i.killer,i.victim,i.date,i.map,i.notes].join(' ').toLowerCase();return(!q||t.includes(q))&&(!m||i.map===m)&&(!p||norm(i.killer)===p||norm(i.victim)===p)}).sort(sortIncidents);renderIncidentTable()}
 function sortIncidents(a,b){return String(b.date).localeCompare(String(a.date))||String(b.id).localeCompare(String(a.id))}
@@ -28,4 +35,12 @@ loadData();
 
 /* Hover-card styling is kept here so no existing stylesheet needs to be replaced. */
 const hoverStyle=document.createElement('style');hoverStyle.textContent=`
-.player-hover{position:relative;display:inline-block;cursor:help;outline:none}.player-hover-card{position:absolute;left:0;bottom:calc(100% + 12px);width:190px;padding:8px;background:#0b0e0f;border:1px solid #ff7a00;border-radius:8px;box-shadow:0 12px 30px rgba(0,0,0,.65);opacity:0;visibility:hidden;pointer-events:none;transform:translateY(6px);transition:opacity .16s ease,transform .16s ease,visibility .16s ease;z-index:1000}.player-hover-card img{display:block;width:174px;height:174px;object-fit:cover;border-radius:5px;background:#111516}.player-hover-name{display:block;margin-top:7px;color:#f1f3f4;font-size:12px;font-weight:700;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.player-hover:hover .player-hover-card,.player-hover:focus .player-hover-card{opacity:1;visibility:visible;transform:translateY(0)}.rank-name .player-hover-card{left:0}.top-killer .player-hover-card,.top-victim .player-hover-card{left:50%;transform:translateX(-50%) translateY(6px)}.top-killer .player-hover:hover .player-hover-card,.top-killer .player-hover:focus .player-hover-card,.top-victim .player-hover:hover .player-hover-card,.top-victim .player-hover:focus .player-hover-card{transform:translateX(-50%) translateY(0)}.player-hover.image-error .player-hover-card{display:none}@media(max-width:700px){.player-hover-card{width:150px}.player-hover-card img{width:134px;height:134px}}`;document.head.appendChild(hoverStyle);
+.player-hover{position:relative;display:inline-block;cursor:help;outline:none;color:inherit}
+.player-hover-card{position:absolute;left:0;bottom:calc(100% + 12px);width:190px;padding:8px;background:#0b0e0f;border:1px solid #ff7a00;border-radius:8px;box-shadow:0 12px 30px rgba(0,0,0,.65);opacity:0;visibility:hidden;pointer-events:none;transform:translateY(6px);transition:opacity .16s ease,transform .16s ease,visibility .16s ease;z-index:99999}
+.player-hover-card img{display:block;width:174px;height:174px;object-fit:cover;border-radius:5px;background:#111516}
+.player-hover-name{display:block;margin-top:7px;color:#f1f3f4;font-size:12px;font-weight:700;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.player-hover:hover .player-hover-card,.player-hover:focus .player-hover-card{opacity:1;visibility:visible;transform:translateY(0)}
+.top-killer .player-hover-card,.top-victim .player-hover-card{left:50%;transform:translateX(-50%) translateY(6px)}
+.top-killer .player-hover:hover .player-hover-card,.top-killer .player-hover:focus .player-hover-card,.top-victim .player-hover:hover .player-hover-card,.top-victim .player-hover:focus .player-hover-card{transform:translateX(-50%) translateY(0)}
+@media(max-width:700px){.player-hover-card{width:150px}.player-hover-card img{width:134px;height:134px}}
+`;document.head.appendChild(hoverStyle);
