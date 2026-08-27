@@ -64,8 +64,13 @@ function imagePath(filename){
   if(!filename)return '';
   const value=String(filename).trim();
   if(/^https?:\/\//i.test(value)||value.startsWith('//'))return value;
-  if(value.startsWith('assets/'))return value;
-  return `assets/${value.split('/').map(encodeURIComponent).join('/')}`;
+  const clean=value.replace(/^\/+/, '');
+  const path=clean.startsWith('assets/')?clean:`assets/${clean}`;
+  return new URL(path, document.baseURI).href;
+}
+function rawImagePath(path){
+  const clean=String(path||'').replace(/^\/+/, '');
+  return `https://raw.githubusercontent.com/ATritle/tkleaderboard/main/${clean}`;
 }
 
 function playerProfile(name){
@@ -84,8 +89,8 @@ function playerNameHtml(name){
   return `<span class="player-hover" tabindex="0" data-player="${esc(shown)}">
     ${esc(shown)}
     <span class="player-hover-card">
-      <img src="${esc(imagePath(p.image))}" alt="${esc(shown)}" loading="lazy"
-        onerror="this.closest('.player-hover').classList.add('image-error')">
+      <img src="${esc(imagePath(p.image))}" data-repo-path="${esc(p.image.startsWith('assets/')?p.image:`assets/${p.image}`)}" alt="${esc(shown)}" loading="lazy"
+        onerror="if(!this.dataset.fallback){this.dataset.fallback='1';this.src=rawImagePath(this.dataset.repoPath)}else{this.closest('.player-hover').classList.add('image-error')}">
       <span class="player-hover-name">${esc(shown)}</span>
     </span>
   </span>`;
@@ -109,8 +114,8 @@ function mapNameHtml(name){
   return `<span class="player-hover map-hover" tabindex="0" data-map="${esc(shown)}">
     ${esc(shown)}
     <span class="player-hover-card">
-      <img src="${esc(`assets/maps/${file}`)}" alt="${esc(shown)} map" loading="lazy"
-        onerror="this.closest('.player-hover').classList.add('image-error')">
+      <img src="${esc(new URL(`assets/maps/${file}`, document.baseURI).href)}" data-repo-path="${esc(`assets/maps/${file}`)}" alt="${esc(shown)} map" loading="lazy"
+        onerror="if(!this.dataset.fallback){this.dataset.fallback='1';this.src=rawImagePath(this.dataset.repoPath)}else{this.closest('.player-hover').classList.add('image-error')}">
       <span class="player-hover-name">${esc(shown)}</span>
     </span>
   </span>`;
