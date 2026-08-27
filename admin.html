@@ -3,7 +3,14 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#090b0c"><title>TK Leaderboard Admin</title>
 <link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="admin-roster.css"><link rel="stylesheet" href="admin-delete.css">
-</head><body data-admin-page="true">
+<style>
+.player-add-grid{display:grid!important;grid-template-columns:1fr 1.5fr auto;gap:12px;align-items:center}
+.player-row-image{display:grid!important;grid-template-columns:34px 48px 1fr auto auto;gap:12px;align-items:center}
+.player-avatar-small{width:42px;height:42px;object-fit:cover;border-radius:6px;border:1px solid #303638;background:#15191a}
+.player-avatar-placeholder{width:42px;height:42px;display:flex;align-items:center;justify-content:center;border-radius:6px;border:1px solid #303638;background:#15191a;color:#777}
+.player-info{min-width:0;display:flex;flex-direction:column;gap:3px}.edit-player,.remove-player{cursor:pointer}
+@media(max-width:800px){.player-add-grid{grid-template-columns:1fr!important}.player-row-image{grid-template-columns:34px 48px 1fr!important}.player-row-image button{grid-column:3;width:max-content}}
+</style></head><body>
 <header class="hero-header admin-header">
 <div class="header-left"><div class="eyebrow">ESCAPE FROM TARKOV</div><h1>TK LEADERBOARD ADMIN</h1><p>Manage players and add incidents directly to GitHub.</p></div>
 <div class="header-logo"><img src="assets/eft-logo.png" alt="Escape from Tarkov"></div>
@@ -12,7 +19,11 @@
 <section class="panel admin-panel">
 <div class="section-title"><span class="section-icon">♟</span><div><div class="eyebrow">PLAYER ROSTER</div><h2>MANAGE PLAYERS</h2></div></div>
 <p class="admin-note">Players added here are players who can receive TK credit. Only these players appear in the Killer dropdown and leaderboard. A victim does <strong>not</strong> need to be added.</p>
-<div class="player-add-row"><input id="newPlayer" type="text" placeholder="Enter player name" autocomplete="off" maxlength="40"><button id="addPlayer" class="btn primary" type="button">✚ &nbsp; ADD PLAYER</button></div>
+<div class="player-add-row player-add-grid">
+<input id="newPlayer" type="text" placeholder="Enter player name" autocomplete="off" maxlength="40">
+<input id="playerImage" type="url" placeholder="Player image URL (optional)" autocomplete="off">
+<button id="addPlayer" class="btn primary" type="button">✚ &nbsp; ADD PLAYER</button>
+</div>
 <div id="playerStatus" class="status" aria-live="polite"></div><div id="playerList" class="player-list"></div>
 </section>
 <section class="panel admin-panel">
@@ -22,7 +33,7 @@
 <div class="field"><label for="killer">Player Who Team Killed</label><select id="killer" required><option value="">Select player...</option></select></div>
 <div class="field"><label for="victim">Player Team Killed</label><input id="victim" type="text" placeholder="Victim name" autocomplete="off" maxlength="40" required></div>
 <div class="field"><label for="date">Date</label><input id="date" type="date" required></div>
-<div class="field"><label for="map">Map</label><select id="map" required><option value="">Select map...</option><option>Customs</option><option>Factory</option><option>Interchange</option><option>Reserve</option><option>Shoreline</option><option>Woods</option><option>Labs</option><option>Labyrinth</option><option>Lighthouse</option><option>Streets of Tarkov</option><option>Ground Zero</option><option>Icebreaker</option><option>Other</option></select></div>
+<div class="field"><label for="map">Map</label><select id="map" required><option value="">Select map...</option><option>Customs</option><option>Factory</option><option>Interchange</option><option>Reserve</option><option>Shoreline</option><option>Woods</option><option>Labs</option><option>Lighthouse</option><option>Streets of Tarkov</option><option>Ground Zero</option><option>Terminal</option><option>Other</option></select></div>
 <div class="field full"><label for="notes">Notes</label><textarea id="notes" rows="4" placeholder="What happened?"></textarea></div>
 <div class="field full"><label for="clip">Video Clip URL <span class="optional">(optional)</span></label><input id="clip" type="url" placeholder="https://..." autocomplete="off"></div>
 </div>
@@ -34,4 +45,4 @@
 <div class="field"><label for="token">GitHub Personal Access Token</label><input id="token" type="password" autocomplete="off" placeholder="github_pat_..." spellcheck="false"></div>
 <p class="token-help">The public leaderboard does not need a token.</p></section>
 <section class="panel admin-panel"><div class="section-title"><span class="section-icon">☷</span><div><div class="eyebrow">CURRENT DATA</div><h2>RECENT INCIDENTS</h2></div></div><div id="adminRecent" class="incident-table"></div></section>
-</main><script src="admin.js"></script><script src="admin-auth.js"></script></body></html>
+</main><script src="admin.js"></script></body></html>
